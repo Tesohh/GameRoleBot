@@ -14,6 +14,7 @@ from discord.ext import tasks
 from rich.console import Console
 from secretTokens import BOT_TOKEN
 from languages_iten import langs
+import random
 
 console = Console()
 
@@ -45,7 +46,7 @@ async def on_guild_join(guild):
 
 		with open(f"guildsets/{guild.id}_sets.json", "w") as f:
 			print(f"Sono stato aggiunto al server {guild.name} ID: {guild.id}")
-			jsonPre = {"games" : {"overwatch" : ":watch:", "minecraft" : ":b:"}, "lang" : "it", "role" : managerRole.id, "welcomeChat" : welcomeChat.id, "lfgChat":lfgChat.id}
+			jsonPre = {"games" : {}, "lang" : "it", "role" : managerRole.id, "welcomeChat" : welcomeChat.id, "lfgChat":lfgChat.id}
 			json.dump(jsonPre, f)
 			#aggiungi delle impostazioni di default per il server quando il bot entra nel server
 	except:
@@ -60,10 +61,18 @@ def saveGuildSettings(gid, dictionariation):
 	with open(f"guildsets/{gid}_sets.json", "w") as f:
 		json.dump(dictionariation, f)
 
+@slash.slash(description="🇮🇹 Crea un annuncio LFG 🇬🇧 Make a LFG Post")
+async def postlfg(ctx, game, desc, size):
+	gsts = getGuildSettings(ctx.guild.id)
+	l = langs[gsts["lang"]]
+	embed = discord.Embed(title=l["lfgTitle"], description=desc)
+	if not game in [i.lower() for i in gsts["games"]]:
+		await ctx.send(l["lfgNotFound"])
+		return
+	gameRole = discord.utils.get(ctx.guild.roles, name=game)
+	embed.add_field(name=l["lfgGame"], value=f"{gsts['games'][game]} {gameRole.mention}")
+	await ctx.send(f"||{gameRole.mention}||", embed=embed)
 
-@slash.slash(description="comando di prova")
-async def hello(ctx, tag):
-	await ctx.send(f"Ciao! {tag}")
 
 @slash.slash(description="🇮🇹 Aggiungi un gioco alla lista\n🇬🇧 Add a game to list (ADMIN ONLY)")
 # TODO permissionsssssssssssss
@@ -84,6 +93,8 @@ async def addgame(ctx, name, emoji):
 				allGamesPretty += f"= {gsts['games'][i]} {i}\n"
 		allGamesPretty += "```"
 		embed = discord.Embed(title=l["addGameConfirm"], description=allGamesPretty)
+		selectedColor = random.choice([0xf94144, 0xf3722c, 0xf8961e, 0xf9844a, 0xf9c74f, 0x90be6d, 0x43aa8b, 0x4d908e, 0x577590, 0x277da1, 0x240046, 0x9d4edd, 0x582f0e])
+		gameRole = await ctx.guild.create_role(name=name, colour=discord.Colour(selectedColor))
 		await ctx.send(embed=embed)
 	except:
 		console.print_exception()
@@ -94,6 +105,7 @@ async def removegame(ctx, name):
 	try:
 		gsts = getGuildSettings(ctx.guild.id)
 		l = langs[gsts["lang"]]
+		allGamesPretty = "```diff\n"
 		if name not in gsts["games"]:
 			await ctx.send(l["removeGameError_NotFound"])
 			return
@@ -104,9 +116,8 @@ async def removegame(ctx, name):
 				allGamesPretty += f"= {gsts['games'][i]} {i}\n"
 		allGamesPretty += "```"
 
-		gsts["games"].remove(name)
+		gsts["games"].pop(name)
 		saveGuildSettings(ctx.guild.id, gsts)
-		allGamesPretty = "```diff\n"
 
 		embed = discord.Embed(title=l["addGameConfirm"], description=allGamesPretty)
 		await ctx.send(embed=embed)
@@ -119,21 +130,35 @@ async def weplay(ctx):
 	l = langs[gsts["lang"]]
 	hereWePretty = ""
 	for i in gsts["games"]:
-		hereWePretty += f'{gsts["games"][i]} {i}\n'
+		print(i)
+		gameRole = discord.utils.get(ctx.guild.roles, name=i)
+		hereWePretty += f'{gsts["games"][i]} {gameRole.mention}\n'
 	embed = discord.Embed(title=l["hereWePlay"], description=hereWePretty)
 	await ctx.send(embed=embed)
 
-@slash.slash(description="Esce dal server con stile.")
-async def lessgo(ctx):
-	gsts = getGuildSettings(ctx.guild.id)
-	welcomeChannel = discord.utils.get(ctx.guild.channels, name="lfg-manager")
-	lfgChannel = discord.utils.get(ctx.guild.channels, name="lfg")
-	managerRole = discord.utils.get(ctx.guild.roles, name="LFG Manager Manager")
-	await welcomeChannel.delete()
-	await lfgChannel.delete()
-	await managerRole.delete()
-	await ctx.send("Addio!", file=discord.File("byebye.gif"))
-	toleave = client.get_guild(ctx.guild.id)
-	await toleave.leave()	
+@slash.slash(description="Uninstalls the bot with style.")
+async def uninstall(ctx, confirm):
+	if confirm == "confirm":
+		gsts = getGuildSettings(ctx.guild.id)
+		welcomeChannel = discord.utils.get(ctx.guild.channels, name="lfg-manager")
+		lfgChannel = discord.utils.get(ctx.guild.channels, name="lfg")
+		managerRole = discord.utils.get(ctx.guild.roles, name="LFG Manager Manager")
+
+		allRoles = f" - {managerRole.mention}\n"
+
+		for i in gsts["games"]:
+			gameRole = discord.utils.get(ctx.guild.roles, name=i)
+			allRoles += f" - {gameRole.mention}\n"
+			await gameRole.delete()
+
+		allRoles += " - #lfg-manager\n - #lfg"
+		embed = discord.Embed(title="Deleted", description=allRoles)
+		
+		await welcomeChannel.delete()
+		await lfgChannel.delete()
+		await managerRole.delete()
+		await ctx.send("Addio!", file=discord.File("byebye.gif"))
+		toleave = client.get_guild(ctx.guild.id)
+		await toleave.leave()	
 
 client.run(BOT_TOKEN)
