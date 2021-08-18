@@ -17,10 +17,14 @@ langs = {
 		"addGameError_AlreadyExists" : "Questo gioco esiste gia!",
 		"removeGameError_NotFound" : "Questo gioco non esiste!",
 		"lfgTitle" : "Annuncio LFG",
+		"lfgTitlePre" : "Ecco qua l'annuncio - mandato in #lfg",
 		"lfgGame" : "Gioco",
 		"lfgSize" : "Quante persone",
 		"lfgTags" : "Tags",
 		"lfgPostBy" : "Annuncio di ",
-		"lfgNotFound" : "Il gioco che hai messo non esiste in questo server!"
+		"lfgNotFound" : "Il gioco che hai messo non esiste in questo server!",
+		"lfgNotNumber" : "Inserisci un numero valido!",
+		"lfgNotNumber" : "Inserisci un numero valido!",
+		"lfgEnter" : "Entra",
 	}
 }

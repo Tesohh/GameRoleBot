@@ -15,6 +15,10 @@ from rich.console import Console
 from secretTokens import BOT_TOKEN
 from languages_iten import langs
 import random
+from secrets import token_hex
+from discord_components import DiscordComponents, Button, ButtonStyle
+
+lfgRequests = {}
 
 console = Console()
 
@@ -25,6 +29,7 @@ slash = SlashCommand(client, sync_commands=True)
 @client.event
 async def on_ready():
    print(f"{client.user} e' online.")
+   DiscordComponents(client)
 
 @client.event
 async def on_guild_join(guild):
@@ -63,16 +68,54 @@ def saveGuildSettings(gid, dictionariation):
 
 @slash.slash(description="🇮🇹 Crea un annuncio LFG 🇬🇧 Make a LFG Post")
 async def postlfg(ctx, game, desc, size):
+	global lfgRequests
 	gsts = getGuildSettings(ctx.guild.id)
 	l = langs[gsts["lang"]]
 	embed = discord.Embed(title=l["lfgTitle"], description=desc)
 	if not game in [i.lower() for i in gsts["games"]]:
 		await ctx.send(l["lfgNotFound"])
 		return
+	try:
+		size = int(size)
+		if size == 1:
+			raise Exception
+	except:
+		await ctx.send(l["lfgNotNumber"])
+		return
 	gameRole = discord.utils.get(ctx.guild.roles, name=game)
-	embed.add_field(name=l["lfgGame"], value=f"{gsts['games'][game]} {gameRole.mention}")
-	await ctx.send(f"||{gameRole.mention}||", embed=embed)
 
+	embed.add_field(name=l["lfgGame"], value=f"{gsts['games'][game]} {gameRole.mention}")
+	embed.add_field(name=l["lfgSize"], value=f"1/{size}")
+	embed.set_footer(text=f"{l['lfgPostBy']}{ctx.author}", icon_url=ctx.author.avatar_url)
+
+	lfgChannel = discord.utils.get(ctx.guild.channels, name="lfg")
+	await ctx.send(l["lfgTitlePre"], embed=embed)
+
+	lfgId = token_hex(4)
+	lfgRequests[lfgId] = {
+		"embed" : embed,
+		"size" : size,
+		"currentSize" : 1,
+		"game" : gameRole.mention,
+		"message" : await lfgChannel.send(content=gameRole.mention, embed=embed, components=[Button(style=ButtonStyle.green, label=l["lfgEnter"], custom_id="lfgAccept")])
+	}
+
+	createdVoiceChannel = False
+
+	while lfgRequests[lfgId]["currentSize"] != lfgRequests[lfgId]["size"]:
+		interaction = await client.wait_for("button_click", check=lambda i: i.component.label.startswith(l["lfgEnter"]))
+
+		if not createdVoiceChannel:
+			createdVoiceChannel = True
+			lfgRequests[lfgId]["channel"] = await ctx.guild.create_voice_channel(f'LFG Channel {lfgId}')
+
+		print(repr(interaction))
+		await interaction.respond(content=lfgRequests[lfgId]["channel"].mention)
+		lfgRequests[lfgId]["currentSize"] += 1
+		# TODO canali autocancellanti e messaggio che si modifica a seconda di quanti sono dentor
+
+	await lfgRequests[lfgId]["message"].delete()
+	lfgRequests.pop(lfgId)
 
 @slash.slash(description="🇮🇹 Aggiungi un gioco alla lista\n🇬🇧 Add a game to list (ADMIN ONLY)")
 # TODO permissionsssssssssssss
@@ -157,7 +200,7 @@ async def uninstall(ctx, confirm):
 		await welcomeChannel.delete()
 		await lfgChannel.delete()
 		await managerRole.delete()
-		await ctx.send("Addio!", file=discord.File("byebye.gif"))
+		await ctx.send(embed = embed, file=discord.File("byebye.gif"))
 		toleave = client.get_guild(ctx.guild.id)
 		await toleave.leave()	
 
