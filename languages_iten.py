@@ -26,5 +26,7 @@ langs = {
 		"lfgNotNumber" : "Inserisci un numero valido!",
 		"lfgNotNumber" : "Inserisci un numero valido!",
 		"lfgEnter" : "Entra",
+		"lfgSomeoneEntered" : "Qualcuno e' entrato nel canale! Entra anche tu: ",
+		"lfgWarning" : "Per favore, resta nel canale vocale anche se nessuno lo usa. Dopo 1 minuto di inattivita', verra' cancellato il gruppo di LFG!"
 	}
 }

@@ -15,6 +15,7 @@ from rich.console import Console
 from secretTokens import BOT_TOKEN
 from languages_iten import langs
 import random
+from scripts.tickingBomb import tickBomb
 from secrets import token_hex
 from discord_components import DiscordComponents, Button, ButtonStyle
 
@@ -97,20 +98,23 @@ async def postlfg(ctx, game, desc, size):
 		"size" : size,
 		"currentSize" : 1,
 		"game" : gameRole.mention,
-		"message" : await lfgChannel.send(content=gameRole.mention, embed=embed, components=[Button(style=ButtonStyle.green, label=l["lfgEnter"], custom_id="lfgAccept")])
+		"message" : await lfgChannel.send(content=gameRole.mention, embed=embed, components=[Button(style=ButtonStyle.green, label=f"{l['lfgEnter']} - {lfgId}", custom_id="lfgAccept")])
 	}
 
 	createdVoiceChannel = False
 
 	while lfgRequests[lfgId]["currentSize"] != lfgRequests[lfgId]["size"]:
-		interaction = await client.wait_for("button_click", check=lambda i: i.component.label.startswith(l["lfgEnter"]))
+		interaction = await client.wait_for("button_click", check=lambda i: i.component.label.startswith(f"{l['lfgEnter']} - {lfgId}"))
 
 		if not createdVoiceChannel:
 			createdVoiceChannel = True
-			lfgRequests[lfgId]["channel"] = await ctx.guild.create_voice_channel(f'LFG Channel {lfgId}')
+			lfgRequests[lfgId]["voicechannel"] = await ctx.guild.create_voice_channel(f'LFG-voice-{lfgId}')
+			lfgRequests[lfgId]["textchannel"] = await ctx.guild.create_text_channel(f'lfg-text-{lfgId}')
 
 		print(repr(interaction))
-		await interaction.respond(content=lfgRequests[lfgId]["channel"].mention)
+		await interaction.respond(content=f'Voice: {lfgRequests[lfgId]["voicechannel"].mention}\nText: {lfgRequests[lfgId]["textchannel"].mention}')
+		await ctx.send(f"{ctx.author.mention} {l['lfgSomeoneEntered']}{lfgRequests[lfgId]['voicechannel'].mention} {lfgRequests[lfgId]['textchannel'].mention}\n{l['lfgWarning']}")
+		await tickBomb(lfgId, ctx.guild)
 		lfgRequests[lfgId]["currentSize"] += 1
 		# TODO canali autocancellanti e messaggio che si modifica a seconda di quanti sono dentor
 
