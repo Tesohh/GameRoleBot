@@ -6,7 +6,7 @@ langs = {
 		"section3" : "💁 Aiuto per configurare il bot",
 		"welcome3" : "Per andare avanti, per favore metti a chi vuoi che possa avere privilegi di usare i comandi di gestione del bot (cambiare lingua, modificare la lista dei giochi) il ruolo chiamato **\"LFG Manager Manager\"**. Dopo di che aggiungi qualche gioco col comando **/addgame** e usa **/confirmchanges** per salvare ogni modifica.",
 		"section4" : "⚠️ Avviso importante",
-		"welcome4" : "**NON CANCELLARE O RINOMINARE QUESTO CANALE**. Serve agli utenti per scegliere i giochi a cui giocano. _(questo messaggio lo puoi cancellare quando vuoi)_",
+		"welcome4" : "**NON CANCELLARE O RINOMINARE QUESTO CANALE/MESSAGGIO!**. Serve agli utenti per scegliere i giochi a cui giocano. Se hai fatto queste cose per sbaglio, fai /uninstall confirm e riinvita il bot.",
 		"section5" : "ℹ️ Info sugli sviluppatori",
 		"welcome5" : "Collabora con noi su [GitHub](https://github.com/Tesohh/GameRoleBot)\nUn lavoro di **Tesohh#0865** e **Frenkop#9917** (contattateci se avete problemi). Logo fatto da **Filvi**",
 		"lfg1" : "In questo canale verranno mandati gli annunci di LFG. NON CANCELLARLO O RINOMINARLO!",
@@ -27,6 +27,8 @@ langs = {
 		"lfgNotNumber" : "Inserisci un numero valido!",
 		"lfgEnter" : "Entra",
 		"lfgSomeoneEntered" : "Qualcuno e' entrato nel canale! Entra anche tu: ",
-		"lfgWarning" : "Per favore, resta nel canale vocale anche se nessuno lo usa. Dopo 1 minuto di inattivita', verra' cancellato il gruppo di LFG!"
+		"lfgWarning" : "Per favore, resta nel canale vocale anche se nessuno lo usa. Dopo 1 minuto di inattivita', verra' cancellato il gruppo di LFG!",
+		"roleDesc" : "Usa il menu a tendina per attivare/disattivare il ruolo",
+		"rolePlaceholder" : "Seleziona ruoli"
 	}
 }

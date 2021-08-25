@@ -15,9 +15,11 @@ from rich.console import Console
 from secretTokens import BOT_TOKEN
 from languages_iten import langs
 import random
-from scripts.tickingBomb import tickBomb
+from lfgscripts.tickingBomb import tickBomb
+from lfgscripts.roleGiver import theRoleFather
 from secrets import token_hex
-from discord_components import DiscordComponents, Button, ButtonStyle
+from lfgscripts.settingManagers import getGuildSettings, saveGuildSettings
+from discord_components import DiscordComponents, Button, ButtonStyle, Select, SelectOption
 
 lfgRequests = {}
 
@@ -48,24 +50,22 @@ async def on_guild_join(guild):
 		await welcomeChat.send(embed=embed)
 
 		lfgChat = await guild.create_text_channel('lfg')
-		await lfgChat.send(l["lfg1"])
+		lfgMsg = await lfgChat.send(l["lfg1"])
 
 		with open(f"guildsets/{guild.id}_sets.json", "w") as f:
 			print(f"Sono stato aggiunto al server {guild.name} ID: {guild.id}")
-			jsonPre = {"games" : {}, "lang" : "it", "role" : managerRole.id, "welcomeChat" : welcomeChat.id, "lfgChat":lfgChat.id}
+			jsonPre = {"games" : {}, "lang" : "it", "role" : managerRole.id, "welcomeChat" : welcomeChat.id, "lfgChat":lfgChat.id, "roleFatherMsg" : lfgMsg.id}
 			json.dump(jsonPre, f)
 			#aggiungi delle impostazioni di default per il server quando il bot entra nel server
 	except:
 		console.print_exception()
 
-def getGuildSettings(gid):
-	with open(f"guildsets/{gid}_sets.json", "r") as f:
-		jsonPre = json.load(f)
-		return jsonPre
 
-def saveGuildSettings(gid, dictionariation):
-	with open(f"guildsets/{gid}_sets.json", "w") as f:
-		json.dump(dictionariation, f)
+
+@slash.slash(description="Update/Aggiorna The Father Of Roles")
+async def fatherrole(ctx):
+	await theRoleFather(getGuildSettings(ctx.guild.id), ctx.guild)
+	await ctx.send("a")
 
 @slash.slash(description="🇮🇹 Crea un annuncio LFG 🇬🇧 Make a LFG Post")
 async def postlfg(ctx, game, desc, size):
